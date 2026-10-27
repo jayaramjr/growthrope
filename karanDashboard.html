@@ -1,0 +1,2690 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>AzureGreen → Shopify || Jayaram code</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&family=Instrument+Serif:ital@0;1&display=swap"
+      rel="stylesheet"
+    />
+    <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+    <style>
+      :root {
+        --bg: #ffffff;
+        --bg-subtle: #faf9f5;
+        --panel: #f4f2eb;
+        --card: #ffffff;
+        --ink: #121211;
+        --gray: #4a4945;
+        --dim: #73716b;
+        --line: #e3e1d8;
+        --line-strong: #cfccc0;
+        --blue: #4350c8;
+        --blue-hover: #3641ad;
+        --blue-soft: rgba(67, 80, 200, 0.08);
+        --blue-glow: rgba(67, 80, 200, 0.22);
+        --green: #0d824a;
+        --green-bg: #e7f6ee;
+        --red: #c22525;
+        --red-bg: #fdeaea;
+        --amber: #9a5200;
+        --amber-bg: #fef3e2;
+        --radius: 16px;
+        --radius-sm: 10px;
+        --shadow-sm:
+          0 2px 8px rgba(18, 18, 17, 0.04), 0 1px 2px rgba(18, 18, 17, 0.03);
+        --shadow-lg:
+          0 20px 44px -12px rgba(18, 18, 17, 0.09),
+          0 4px 14px -2px rgba(18, 18, 17, 0.05);
+        --sans: "Archivo", system-ui, -apple-system, sans-serif;
+        --serif: "Instrument Serif", Georgia, serif;
+        --mono: "IBM Plex Mono", ui-monospace, monospace;
+        --ease: cubic-bezier(0.23, 1, 0.32, 1);
+        --topbar-h: 65px;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+      }
+
+      /* Body is a flex column so Step 3 can lock to viewport height cleanly. */
+      body {
+        font-family: var(--sans);
+        background: var(--bg-subtle);
+        color: var(--ink);
+        line-height: 1.5;
+        -webkit-font-smoothing: antialiased;
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+      }
+      body.step3-on {
+        height: 100vh;
+        height: 100dvh;
+        overflow: hidden;
+      }
+
+      /* ── TOP BAR ── */
+      .topbar {
+        position: sticky;
+        top: 0;
+        z-index: 50;
+        background: rgba(255, 255, 255, 0.9);
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+        border-bottom: 1px solid var(--line);
+        flex-shrink: 0;
+      }
+      .topbar-inner {
+        max-width: 1280px;
+        margin: 0 auto;
+        padding: 12px 24px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        min-height: var(--topbar-h);
+      }
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+      .brand-mark {
+        width: 32px;
+        height: 32px;
+        border-radius: 8px;
+        background: var(--blue);
+        color: #fff;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        font-size: 13px;
+        letter-spacing: -0.02em;
+        box-shadow: var(--blue-glow) 0 4px 12px -2px;
+      }
+      .brand-name {
+        font-size: 15px;
+        font-weight: 600;
+        letter-spacing: -0.01em;
+      }
+      .brand-version {
+        padding: 2px 8px;
+        background: var(--green-bg);
+        color: var(--green);
+        border-radius: 999px;
+        font-size: 11px;
+        font-weight: 600;
+        font-family: var(--mono);
+      }
+
+      /* stepper */
+      .stepper {
+        display: flex;
+        gap: 2px;
+        background: var(--panel);
+        padding: 4px;
+        border-radius: var(--radius-sm);
+        border: 1px solid var(--line);
+      }
+      .stepper-step {
+        padding: 6px 12px;
+        border: none;
+        background: transparent;
+        border-radius: 7px;
+        font-family: var(--sans);
+        font-size: 13px;
+        font-weight: 500;
+        color: var(--dim);
+        display: flex;
+        align-items: center;
+        gap: 7px;
+        cursor: default;
+        transition: all 0.15s ease;
+        white-space: nowrap;
+      }
+      .stepper-step .num {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 18px;
+        height: 18px;
+        border-radius: 50%;
+        background: var(--line);
+        color: var(--dim);
+        font-size: 11px;
+        font-weight: 700;
+        font-family: var(--mono);
+      }
+      .stepper-step.current {
+        background: var(--card);
+        color: var(--ink);
+        box-shadow: var(--shadow-sm);
+      }
+      .stepper-step.current .num {
+        background: var(--blue);
+        color: #fff;
+      }
+      .stepper-step.done {
+        color: var(--green);
+        cursor: pointer;
+      }
+      .stepper-step.done:hover {
+        background: var(--card);
+        color: var(--ink);
+      }
+      .stepper-step.done .num {
+        background: var(--green);
+        color: #fff;
+      }
+
+      .btn-reset {
+        padding: 8px 14px;
+        border: 1px solid var(--line-strong);
+        background: var(--card);
+        color: var(--gray);
+        border-radius: var(--radius-sm);
+        font-family: var(--sans);
+        font-size: 13.5px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.15s ease;
+      }
+      .btn-reset:hover {
+        background: var(--bg-subtle);
+        color: var(--ink);
+        border-color: var(--ink);
+      }
+
+      /* ── MAIN ── */
+      main {
+        flex: 1 0 auto;
+        min-height: 0;
+      }
+      body.step3-on main {
+        flex: 1 1 0%;
+        min-height: 0;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+      }
+
+      /* ── WRAP ── */
+      .wrap {
+        max-width: 1280px;
+        margin: 0 auto;
+        padding: 32px 24px 80px;
+      }
+
+      /* ── CARD ── */
+      .card {
+        background: var(--card);
+        border: 1px solid var(--line-strong);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow-sm);
+        padding: 24px;
+      }
+      .card-head {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 6px;
+      }
+      .step {
+        font-family: var(--mono);
+        font-size: 11px;
+        font-weight: 500;
+        padding: 3px 8px;
+        background: var(--blue-soft);
+        color: var(--blue);
+        border-radius: 6px;
+        letter-spacing: 0.02em;
+      }
+      .card h2 {
+        font-size: 17px;
+        font-weight: 600;
+        margin: 0;
+        letter-spacing: -0.01em;
+      }
+      .card-sub {
+        color: var(--gray);
+        font-size: 13.5px;
+        margin: 0 0 20px;
+        line-height: 1.5;
+      }
+      .card-sub strong {
+        color: var(--ink);
+      }
+
+      /* ── DROP ZONE ── */
+      .drop {
+        border: 2px dashed var(--line-strong);
+        background: var(--bg-subtle);
+        border-radius: var(--radius-sm);
+        padding: 36px 20px;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.15s ease;
+        outline: none;
+      }
+      .drop:hover,
+      .drop.over {
+        border-color: var(--blue);
+        background: var(--blue-soft);
+      }
+      .drop:focus-visible {
+        border-color: var(--blue);
+        box-shadow: 0 0 0 3px var(--blue-soft);
+      }
+      .drop-icon {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 52px;
+        height: 52px;
+        background: var(--card);
+        border: 1px solid var(--line-strong);
+        border-radius: 50%;
+        font-size: 22px;
+        margin-bottom: 12px;
+        box-shadow: var(--shadow-sm);
+      }
+      .drop-title {
+        font-size: 14.5px;
+        font-weight: 600;
+        margin-bottom: 2px;
+      }
+      .drop-sub {
+        font-size: 12.5px;
+        color: var(--dim);
+        font-family: var(--mono);
+      }
+
+      /* ── FILE ROWS ── */
+      .files {
+        display: grid;
+        gap: 8px;
+        margin-top: 16px;
+      }
+      .file-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 10px 14px;
+        background: var(--bg-subtle);
+        border: 1px solid var(--line);
+        border-radius: var(--radius-sm);
+        font-size: 13.5px;
+        transition: border-color 0.15s ease;
+      }
+      .file-row.loaded {
+        border-color: rgba(13, 130, 74, 0.25);
+        background: rgba(231, 246, 238, 0.4);
+      }
+      .file-name {
+        font-family: var(--mono);
+        font-size: 12.5px;
+        color: var(--gray);
+      }
+      .badge {
+        font-size: 10.5px;
+        padding: 3px 8px;
+        border-radius: 999px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+      }
+      .badge.wait {
+        background: var(--panel);
+        color: var(--dim);
+      }
+      .badge.ok {
+        background: var(--green-bg);
+        color: var(--green);
+      }
+      .badge.err {
+        background: var(--red-bg);
+        color: var(--red);
+      }
+
+      /* ── FORM FIELDS ── */
+      .field {
+        margin-bottom: 18px;
+      }
+      .field:last-of-type {
+        margin-bottom: 0;
+      }
+      .field label {
+        display: block;
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--ink);
+        margin-bottom: 6px;
+      }
+      .field input,
+      .field select {
+        width: 100%;
+        padding: 10px 14px;
+        background: var(--bg-subtle);
+        border: 1px solid var(--line-strong);
+        border-radius: var(--radius-sm);
+        font-family: var(--sans);
+        font-size: 14px;
+        color: var(--ink);
+        transition: all 0.15s ease;
+        -webkit-appearance: none;
+        appearance: none;
+      }
+      .field input:focus,
+      .field select:focus {
+        outline: none;
+        border-color: var(--blue);
+        box-shadow: 0 0 0 3px var(--blue-soft);
+        background: var(--card);
+      }
+      .field select {
+        background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2373716b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+        background-repeat: no-repeat;
+        background-position: right 12px center;
+        background-size: 16px;
+        padding-right: 38px;
+        cursor: pointer;
+      }
+      .field .hint {
+        font-size: 12px;
+        color: var(--dim);
+        margin-top: 6px;
+        line-height: 1.5;
+      }
+      .field .hint code {
+        font-family: var(--mono);
+        background: var(--panel);
+        padding: 1px 5px;
+        border-radius: 4px;
+        font-size: 11.5px;
+      }
+
+      /* ── BUTTONS ── */
+      .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        padding: 13px 24px;
+        border-radius: var(--radius-sm);
+        font-family: var(--sans);
+        font-size: 14.5px;
+        font-weight: 600;
+        line-height: 1;
+        border: 1px solid transparent;
+        cursor: pointer;
+        transition: all 0.15s ease;
+        text-decoration: none;
+      }
+      .btn:focus-visible {
+        outline: none;
+        box-shadow: 0 0 0 3px var(--blue-soft);
+      }
+      .btn-primary {
+        background: var(--blue);
+        color: #fff;
+        box-shadow:
+          var(--blue-glow) 0 6px 20px -4px,
+          rgba(0, 0, 0, 0.12) 0 1px 2px 0;
+      }
+      .btn-primary:hover:not(:disabled) {
+        background: var(--blue-hover);
+        transform: translateY(-1px);
+      }
+      .btn-primary:active:not(:disabled) {
+        transform: translateY(0);
+      }
+      .btn-primary:disabled {
+        background: var(--panel);
+        color: var(--dim);
+        box-shadow: none;
+        cursor: not-allowed;
+      }
+      .btn-block {
+        width: 100%;
+        margin-top: 20px;
+      }
+
+      /* ── ALERTS ── */
+      .alert {
+        display: none;
+        padding: 12px 16px;
+        border-radius: var(--radius-sm);
+        margin-bottom: 16px;
+        font-size: 13.5px;
+        line-height: 1.6;
+      }
+      .alert.show {
+        display: block;
+      }
+      .alert-error {
+        background: var(--red-bg);
+        border: 1px solid rgba(194, 37, 37, 0.25);
+        color: var(--red);
+      }
+      .alert-error code {
+        font-family: var(--mono);
+        background: rgba(255, 255, 255, 0.5);
+        padding: 1px 5px;
+        border-radius: 4px;
+        font-size: 12px;
+        color: var(--ink);
+      }
+
+      .hidden {
+        display: none !important;
+      }
+
+      /* ══════════════════════════════════════════
+   STEP 1
+   ══════════════════════════════════════════ */
+      .step1-card {
+        max-width: 720px;
+        margin: 40px auto 0;
+        background: var(--card);
+        border: 1px solid var(--line-strong);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow-sm);
+        padding: 40px;
+      }
+      .step1-head {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 8px;
+      }
+      .step1-head h1 {
+        font-size: 22px;
+        font-weight: 600;
+        margin: 0;
+        letter-spacing: -0.015em;
+      }
+      .step1-sub {
+        color: var(--gray);
+        font-size: 14px;
+        margin: 0 0 20px;
+        line-height: 1.55;
+      }
+      .step1-warn {
+        display: flex;
+        gap: 10px;
+        align-items: flex-start;
+        padding: 12px 14px;
+        background: var(--amber-bg);
+        border: 1px solid rgba(154, 82, 0, 0.2);
+        border-radius: var(--radius-sm);
+        color: var(--amber);
+        font-size: 13px;
+        line-height: 1.5;
+        margin-bottom: 20px;
+      }
+      .step1-warn .warn-icon {
+        font-size: 16px;
+        line-height: 1.2;
+      }
+      .step1-warn strong {
+        color: var(--amber);
+        font-weight: 700;
+      }
+      .step1-actions {
+        margin-top: 24px;
+      }
+
+      /* ══════════════════════════════════════════
+   STEP 2
+   ══════════════════════════════════════════ */
+      .imgprep {
+        display: grid;
+        gap: 20px;
+        grid-template-columns: 360px 1fr;
+        align-items: start;
+      }
+      @media (max-width: 960px) {
+        .imgprep {
+          grid-template-columns: 1fr;
+        }
+      }
+      .imgprep-side {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+      }
+
+      .source-info {
+        margin-top: 14px;
+        font-size: 13px;
+        color: var(--gray);
+        border: 1px dashed var(--line-strong);
+        border-radius: var(--radius-sm);
+        padding: 10px 12px;
+        background: var(--bg-subtle);
+        min-height: 18px;
+        word-break: break-word;
+      }
+      .source-info strong {
+        color: var(--ink);
+        font-weight: 600;
+      }
+      .compat-note {
+        margin-top: 10px;
+        font-size: 12px;
+        color: var(--dim);
+        line-height: 1.5;
+      }
+      .compat-note b {
+        color: var(--ink);
+      }
+
+      .progress-track {
+        height: 5px;
+        background: var(--panel);
+        border-radius: 99px;
+        overflow: hidden;
+        margin-top: 16px;
+      }
+      .progress-fill {
+        height: 100%;
+        background: var(--blue);
+        width: 0%;
+        transition: width 0.15s ease;
+      }
+
+      .log {
+        margin-top: 14px;
+        font-size: 12.5px;
+        color: var(--dim);
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        max-height: 170px;
+        overflow-y: auto;
+      }
+      .log .ok {
+        color: var(--green);
+      }
+      .log .err {
+        color: var(--red);
+      }
+
+      .img-empty {
+        border: 1.5px dashed var(--line-strong);
+        border-radius: var(--radius-sm);
+        padding: 56px 24px;
+        text-align: center;
+        color: var(--dim);
+        font-size: 14px;
+        background: var(--bg-subtle);
+      }
+      .img-empty b {
+        display: block;
+        color: var(--gray);
+        font-size: 15px;
+        margin-bottom: 6px;
+        font-weight: 600;
+      }
+
+      .img-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(168px, 1fr));
+        gap: 14px;
+      }
+      .img-card {
+        background: var(--card);
+        border: 1px solid var(--line);
+        border-radius: var(--radius-sm);
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+      }
+      .img-card .thumb {
+        aspect-ratio: 1/1;
+        background: #fff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+        border-bottom: 1px solid var(--line);
+        overflow: hidden;
+      }
+      .img-card .thumb canvas {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        display: block;
+      }
+      .img-card .thumb .spinner {
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        border: 2px solid var(--line);
+        border-top-color: var(--blue);
+        animation: spin 0.7s linear infinite;
+      }
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+      .thumb-hint {
+        font-size: 12px;
+        color: var(--dim);
+        font-family: var(--mono);
+      }
+      .thumb-hint.err {
+        color: var(--red);
+        font-size: 22px;
+      }
+      .img-card .meta {
+        padding: 9px 11px;
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+      }
+      .img-card .fname {
+        font-size: 12px;
+        color: var(--ink);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .img-card .status {
+        font-size: 11px;
+        color: var(--dim);
+      }
+
+      .step-forward {
+        margin-top: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 20px;
+        padding: 20px 24px;
+        background: var(--card);
+        border: 1px solid var(--line-strong);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow-sm);
+        flex-wrap: wrap;
+      }
+      .step-forward-title {
+        font-weight: 600;
+        font-size: 15px;
+      }
+      .step-forward-sub {
+        font-size: 13.5px;
+        color: var(--gray);
+        margin-top: 2px;
+      }
+
+      /* ══════════════════════════════════════════
+   STEP 3 — FULL-HEIGHT DASHBOARD
+   ══════════════════════════════════════════ */
+      #step3 {
+        min-height: 0;
+      }
+      body.step3-on #step3 {
+        flex: 1 1 0%;
+        min-height: 0;
+        display: flex;
+        flex-direction: column;
+      }
+
+      .step3-layout {
+        display: grid;
+        grid-template-columns: 30% 1fr;
+        flex: 1 1 0%;
+        min-height: 0;
+      }
+
+      .step3-sidebar {
+        height: 100%;
+        overflow-y: auto;
+        background: var(--card);
+        border-right: 1px solid var(--line-strong);
+        padding: 24px;
+      }
+      .step3-main {
+        height: 100%;
+        overflow-y: auto;
+        background: var(--bg-subtle);
+        padding: 24px 28px 40px;
+      }
+
+      .sidebar-title {
+        font-size: 15px;
+        font-weight: 600;
+        margin: 0 0 4px;
+        letter-spacing: -0.01em;
+      }
+      .sidebar-sub {
+        font-size: 12.5px;
+        color: var(--dim);
+        margin: 0 0 22px;
+        line-height: 1.5;
+      }
+
+      .sidebar-section {
+        padding-top: 18px;
+        margin-top: 18px;
+        border-top: 1px solid var(--line);
+      }
+      .sidebar-section:first-of-type {
+        padding-top: 0;
+        margin-top: 0;
+        border-top: none;
+      }
+
+      .dash-head {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 16px;
+        margin-bottom: 16px;
+        flex-wrap: wrap;
+      }
+      .dash-title {
+        font-size: 18px;
+        font-weight: 600;
+        margin: 0;
+        letter-spacing: -0.01em;
+      }
+      .dash-sub {
+        font-size: 13px;
+        color: var(--dim);
+        margin: 0;
+      }
+
+      /* metric cards */
+      .metric-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+        gap: 10px;
+        margin-bottom: 24px;
+      }
+      .metric-card {
+        background: var(--card);
+        border: 1px solid var(--line);
+        border-radius: var(--radius-sm);
+        padding: 12px 14px;
+        transition: border-color 0.15s ease;
+      }
+      .metric-card.ok {
+        border-color: rgba(13, 130, 74, 0.2);
+      }
+      .metric-card.warn {
+        border-color: rgba(154, 82, 0, 0.22);
+      }
+      .metric-k {
+        font-size: 11px;
+        color: var(--dim);
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        font-weight: 600;
+      }
+      .metric-row {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        margin-top: 6px;
+        gap: 8px;
+      }
+      .metric-v {
+        font-size: 24px;
+        font-weight: 700;
+        font-family: var(--mono);
+        letter-spacing: -0.02em;
+        line-height: 1.1;
+      }
+      .metric-card.ok .metric-v {
+        color: var(--green);
+      }
+      .metric-card.warn .metric-v {
+        color: var(--amber);
+      }
+      .metric-view {
+        background: none;
+        border: none;
+        color: var(--blue);
+        font-size: 12px;
+        font-weight: 600;
+        cursor: pointer;
+        padding: 3px 7px;
+        border-radius: 5px;
+        font-family: var(--sans);
+        transition: background 0.12s ease;
+      }
+      .metric-view:hover {
+        background: var(--blue-soft);
+      }
+
+      /* preview table */
+      .preview-wrap {
+        background: var(--card);
+        border: 1px solid var(--line-strong);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow-sm);
+        overflow: hidden;
+      }
+      .preview-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        padding: 16px 20px;
+        border-bottom: 1px solid var(--line);
+        flex-wrap: wrap;
+      }
+      .preview-head h3 {
+        font-size: 15px;
+        font-weight: 600;
+        margin: 0;
+        letter-spacing: -0.01em;
+      }
+      .preview-head .preview-meta {
+        font-size: 12.5px;
+        color: var(--dim);
+      }
+      .preview-scroll {
+        overflow: auto;
+        max-height: 62vh;
+      }
+      .preview-scroll table {
+        border-collapse: collapse;
+        font-size: 12.5px;
+        width: 100%;
+        min-width: 1100px;
+      }
+      .preview-scroll th,
+      .preview-scroll td {
+        border-bottom: 1px solid var(--line);
+        padding: 9px 12px;
+        text-align: left;
+        vertical-align: top;
+        max-width: 240px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+      .preview-scroll th {
+        background: var(--bg-subtle);
+        position: sticky;
+        top: 0;
+        z-index: 1;
+        font-weight: 600;
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.03em;
+        color: var(--gray);
+        font-family: var(--sans);
+      }
+      .preview-scroll tr:last-child td {
+        border-bottom: none;
+      }
+      .preview-scroll tbody tr:hover td {
+        background: rgba(250, 249, 245, 0.6);
+      }
+
+      .preview-note {
+        padding: 10px 20px;
+        border-top: 1px solid var(--line);
+        background: var(--bg-subtle);
+        font-size: 12px;
+        color: var(--dim);
+      }
+
+      /* ══════════════════════════════════════════
+   DRAWER
+   ══════════════════════════════════════════ */
+      .drawer-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(18, 18, 17, 0.28);
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.25s ease;
+        z-index: 99;
+      }
+      .drawer-overlay.open {
+        opacity: 1;
+        pointer-events: auto;
+      }
+      .drawer {
+        position: fixed;
+        top: 0;
+        right: 0;
+        width: 440px;
+        max-width: 94vw;
+        height: 100vh;
+        background: var(--card);
+        border-left: 1px solid var(--line-strong);
+        box-shadow: -20px 0 44px -12px rgba(18, 18, 17, 0.15);
+        transform: translateX(100%);
+        transition: transform 0.3s var(--ease);
+        z-index: 100;
+        display: flex;
+        flex-direction: column;
+      }
+      .drawer.open {
+        transform: translateX(0);
+      }
+      .drawer-head {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 14px;
+        padding: 20px 22px 16px;
+        border-bottom: 1px solid var(--line);
+      }
+      .drawer-kicker {
+        font-size: 10.5px;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        color: var(--dim);
+        font-weight: 600;
+        margin-bottom: 4px;
+      }
+      .drawer-title {
+        font-size: 17px;
+        font-weight: 600;
+        margin: 0;
+        letter-spacing: -0.01em;
+      }
+      .drawer-sub {
+        font-size: 12.5px;
+        color: var(--gray);
+        margin-top: 4px;
+        line-height: 1.5;
+      }
+      .drawer-body {
+        flex: 1;
+        overflow-y: auto;
+        padding: 16px 22px 24px;
+      }
+      .drawer-list {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+      }
+      .sku-chip {
+        display: inline-block;
+        padding: 5px 10px;
+        background: var(--bg-subtle);
+        border: 1px solid var(--line);
+        border-radius: 6px;
+        font-family: var(--mono);
+        font-size: 12px;
+        color: var(--ink);
+      }
+      .drawer-empty {
+        font-size: 13.5px;
+        color: var(--dim);
+        padding: 24px 0;
+        text-align: center;
+      }
+      .drawer-note {
+        font-size: 12px;
+        color: var(--dim);
+        padding: 14px 0 0;
+        border-top: 1px solid var(--line);
+        margin-top: 16px;
+        line-height: 1.5;
+      }
+
+      /* ── RESPONSIVE ── */
+      @media (max-width: 900px) {
+        body.step3-on {
+          height: auto;
+          overflow: auto;
+        }
+        body.step3-on main {
+          flex: 1 0 auto;
+          overflow: visible;
+          display: block;
+        }
+        body.step3-on #step3 {
+          display: block;
+        }
+        .step3-layout {
+          grid-template-columns: 1fr;
+          height: auto;
+        }
+        .step3-sidebar {
+          height: auto;
+          max-height: none;
+          overflow: visible;
+          border-right: none;
+          border-bottom: 1px solid var(--line-strong);
+        }
+        .step3-main {
+          height: auto;
+          overflow: visible;
+          padding: 18px 16px 48px;
+        }
+        .preview-scroll {
+          max-height: 60vh;
+        }
+      }
+
+      @media (max-width: 760px) {
+        .topbar-inner {
+          padding: 10px 16px;
+          gap: 10px;
+        }
+        .brand-name {
+          font-size: 13.5px;
+        }
+        .stepper-step {
+          padding: 5px 8px;
+          font-size: 12px;
+        }
+        .stepper-step span.label {
+          display: none;
+        }
+        .wrap {
+          padding: 20px 16px 60px;
+        }
+        .step1-card {
+          padding: 24px;
+          margin-top: 16px;
+        }
+        .step1-head h1 {
+          font-size: 19px;
+        }
+        .card {
+          padding: 20px;
+        }
+        .metric-grid {
+          grid-template-columns: repeat(2, 1fr);
+        }
+        .drawer {
+          width: 100%;
+        }
+        .preview-scroll th,
+        .preview-scroll td {
+          padding: 8px 10px;
+        }
+      }
+
+      /* Margin explanation block */
+      .margin-explain {
+        margin-top: 10px;
+        padding: 10px 12px;
+        background: var(--bg-subtle);
+        border: 1px solid var(--line);
+        border-left: 3px solid var(--blue);
+        border-radius: 8px;
+        font-size: 12px;
+        color: var(--gray);
+        line-height: 1.5;
+      }
+      .margin-explain-title {
+        font-size: 10.5px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        color: var(--dim);
+        margin-bottom: 6px;
+      }
+      .margin-explain-formula {
+        font-family: var(--mono);
+        font-size: 11.5px;
+        color: var(--ink);
+        background: var(--card);
+        padding: 6px 8px;
+        border-radius: 5px;
+        border: 1px solid var(--line);
+        margin-bottom: 6px;
+        word-break: break-word;
+      }
+      .margin-explain-example code {
+        font-family: var(--mono);
+        background: var(--card);
+        padding: 1px 5px;
+        border-radius: 4px;
+        font-size: 11px;
+        border: 1px solid var(--line);
+        color: var(--ink);
+      }
+      .margin-explain-example strong {
+        color: var(--ink);
+        font-weight: 600;
+      }
+    </style>
+  </head>
+  <body>
+    <header class="topbar">
+      <div class="topbar-inner">
+        <div class="brand">
+          <span class="brand-name">AzureGreen → Shopify</span>
+        </div>
+
+        <nav class="stepper" aria-label="Progress">
+          <button class="stepper-step current" type="button" data-step="1">
+            <span class="num">1</span><span class="label">Upload</span>
+          </button>
+          <button class="stepper-step" type="button" data-step="2">
+            <span class="num">2</span><span class="label">Image Prep</span>
+          </button>
+          <button class="stepper-step" type="button" data-step="3">
+            <span class="num">3</span><span class="label">Review</span>
+          </button>
+        </nav>
+
+        <button class="btn-reset" id="resetBtn" type="button">Reset</button>
+      </div>
+    </header>
+
+    <main>
+      <!-- ════════════════════════════════════════════════════════════
+       STEP 1 · UPLOAD SOURCE FILES
+       ════════════════════════════════════════════════════════════ -->
+      <div class="wrap" id="step1">
+        <section class="step1-card">
+          <div class="step1-head">
+            <span class="step">01</span>
+            <h1>Upload Source Files</h1>
+          </div>
+          <p class="step1-sub">
+            Upload all three CSV files from AzureGreen. You can upload them
+            together or one at a time.
+          </p>
+
+          <div class="step1-warn">
+            <span class="warn-icon">⚠</span>
+            <span
+              >Please don’t rename the files, as the app needs their original
+              names to accept them.</span
+            >
+          </div>
+
+          <div class="alert alert-error" id="errBox"></div>
+
+          <div
+            class="drop"
+            id="drop"
+            tabindex="0"
+            role="button"
+            aria-label="Upload CSV files"
+          >
+            <div class="drop-icon">📂</div>
+            <div class="drop-title">Drag &amp; drop CSV files here</div>
+            <div class="drop-sub">
+              StockInfo.csv · Descriptions.csv · Product-Department.csv
+            </div>
+          </div>
+          <!-- input kept OUTSIDE the drop zone so its click can't re-trigger the drop handler -->
+          <input
+            type="file"
+            id="fileInput"
+            multiple
+            accept=".csv"
+            class="hidden"
+          />
+
+          <div class="files">
+            <div class="file-row" id="r-stock">
+              <span class="file-name">StockInfo.csv</span
+              ><span class="badge wait" id="b-stock">waiting</span>
+            </div>
+            <div class="file-row" id="r-desc">
+              <span class="file-name">Descriptions.csv</span
+              ><span class="badge wait" id="b-desc">waiting</span>
+            </div>
+            <div class="file-row" id="r-dept">
+              <span class="file-name">Product-Department.csv</span
+              ><span class="badge wait" id="b-dept">waiting</span>
+            </div>
+          </div>
+
+          <div class="step1-actions">
+            <button
+              class="btn btn-primary btn-block"
+              id="nextToStep2"
+              type="button"
+              disabled
+            >
+              Next – Shopify Image Prep →
+            </button>
+          </div>
+        </section>
+      </div>
+
+      <!-- ════════════════════════════════════════════════════════════
+       STEP 2 · SHOPIFY IMAGE PREP
+       ════════════════════════════════════════════════════════════ -->
+      <div class="wrap hidden" id="step2">
+        <div class="imgprep">
+          <aside class="imgprep-side">
+            <!-- select folder -->
+            <section class="card">
+              <div class="card-head">
+                <span class="step">01</span>
+                <h2>Select source folder</h2>
+              </div>
+              <p class="card-sub">
+                Choose a folder with your product images. Everything stays on
+                your device.
+              </p>
+              <button
+                class="btn btn-primary btn-block"
+                id="btnSelectFolder"
+                type="button"
+              >
+                Select folder…
+              </button>
+              <div class="source-info" id="sourceInfo">
+                No folder selected yet.
+              </div>
+              <div class="compat-note" id="compatNote"></div>
+            </section>
+
+            <!-- fit settings -->
+            <section class="card">
+              <div class="card-head">
+                <span class="step">02</span>
+                <h2>Fit settings</h2>
+              </div>
+              <p class="card-sub">
+                By default, images use a 1080 × 1080 canvas with a 550 × 550
+                safe zone and a white background. All images are saved as
+                <strong>.jpg</strong> file.
+              </p>
+
+              <div class="field">
+                <label for="canvasSize">Canvas size (px)</label>
+                <input
+                  type="number"
+                  id="canvasSize"
+                  value="1080"
+                  min="100"
+                  step="10"
+                />
+              </div>
+              <div class="field">
+                <label for="safeSize">Safe zone size (px)</label>
+                <input
+                  type="number"
+                  id="safeSize"
+                  value="550"
+                  min="50"
+                  step="10"
+                />
+              </div>
+            </section>
+
+            <!-- fit & export -->
+            <section class="card">
+              <div class="card-head">
+                <span class="step">03</span>
+                <h2>Fit &amp; export</h2>
+              </div>
+              <p class="card-sub">
+                Fit renders the real preview. Export writes the resized images
+                as <strong>.jpg</strong> into a “Shopify Upload” folder.
+              </p>
+
+              <button
+                class="btn btn-primary btn-block"
+                id="btnFit"
+                type="button"
+                disabled
+              >
+                Fit images
+              </button>
+              <button
+                class="btn btn-primary btn-block"
+                id="btnExportImages"
+                type="button"
+                disabled
+              >
+                Export images
+              </button>
+
+              <div class="progress-track">
+                <div class="progress-fill" id="progressFill"></div>
+              </div>
+              <div class="log" id="imgLog"></div>
+            </section>
+          </aside>
+
+          <section class="card">
+            <div class="card-head">
+              <span class="step">VIEW</span>
+              <h2>Preview</h2>
+            </div>
+            <p class="card-sub" id="imgCountLabel">Nothing loaded yet.</p>
+
+            <div id="imgGridWrap">
+              <div class="img-empty">
+                <b>Nothing loaded yet</b>
+                Choose a folder and click “Fit images” to see how your photos
+                will look, centered in the safe zone on a white background.
+              </div>
+            </div>
+          </section>
+        </div>
+
+        <div class="step-forward">
+          <div>
+            <div class="step-forward-title">Ready to review?</div>
+            <div class="step-forward-sub">
+              Move on to the final dashboard to validate your product data and
+              download the Shopify CSV.
+            </div>
+          </div>
+          <button class="btn btn-primary" id="nextToStep3" type="button">
+            Preview / Review &amp; Download →
+          </button>
+        </div>
+      </div>
+
+      <!-- ════════════════════════════════════════════════════════════
+       STEP 3 · PREVIEW, REVIEW & DOWNLOAD  (full-width, full-height)
+       ════════════════════════════════════════════════════════════ -->
+      <div id="step3" class="hidden">
+        <div class="step3-layout">
+          <!-- LEFT · 30% — Configure & Export (full height) -->
+          <aside class="step3-sidebar">
+            <h2 class="sidebar-title">Configure &amp; Export</h2>
+            <p class="sidebar-sub">
+              Adjust pricing and product status, then download the Shopify
+              import file.
+            </p>
+
+            <div class="sidebar-section">
+              <div class="field">
+                <label for="marginInput">Margin set</label>
+                <input
+                  type="number"
+                  id="marginInput"
+                  value="0"
+                  step="1"
+                  min="0"
+                  placeholder="0"
+                />
+                <div class="hint">
+                  <code>0</code> = wholesale · <code>100</code> = double ·
+                  <code>250</code> = 3.5×
+                </div>
+
+                <div class="margin-explain">
+                  <div class="margin-explain-title">
+                    How margin is calculated
+                  </div>
+                  <div class="margin-explain-formula">
+                    Final price = Wholesale × (1 + Margin ÷ 100)
+                  </div>
+                  <div class="margin-explain-example">
+                    Example: Wholesale <code>$3.95</code> with margin
+                    <code>10</code> → 3.95 × 1.10 = <strong>$4.35</strong>
+                  </div>
+                </div>
+              </div>
+
+              <div class="field">
+                <label for="statusSelect">Product status</label>
+                <select id="statusSelect">
+                  <option value="draft" selected>
+                    Draft — hidden from customers
+                  </option>
+                  <option value="active">Active — live on store</option>
+                </select>
+                <div class="hint">
+                  Applied to <strong>every</strong> product in the CSV.
+                </div>
+              </div>
+            </div>
+
+            <div class="sidebar-section">
+              <button
+                class="btn btn-primary btn-block"
+                id="dlBtn"
+                type="button"
+                disabled
+              >
+                Download Shopify File
+              </button>
+            </div>
+          </aside>
+
+          <!-- RIGHT · 70% — dashboard -->
+          <section class="step3-main">
+            <div class="dash-head">
+              <h2 class="dash-title">Product Processing Dashboard</h2>
+              <p class="dash-sub" id="dashSub">—</p>
+            </div>
+
+            <div class="metric-grid" id="metricGrid"></div>
+
+            <div class="preview-wrap">
+              <div class="preview-head">
+                <h3>Product Preview</h3>
+                <span class="preview-meta" id="previewMeta">—</span>
+              </div>
+              <div class="preview-scroll">
+                <table id="previewTable"></table>
+              </div>
+              <div class="preview-note hidden" id="previewNote"></div>
+            </div>
+          </section>
+        </div>
+      </div>
+    </main>
+
+    <!-- ════════════════════════════════════════════════════════════
+     DRAWER (SKU investigation)
+     ════════════════════════════════════════════════════════════ -->
+    <div class="drawer-overlay" id="drawerOverlay"></div>
+    <aside class="drawer" id="drawer" aria-hidden="true">
+      <div class="drawer-head">
+        <div>
+          <h3 class="drawer-title" id="drawerTitle">—</h3>
+          <div class="drawer-sub" id="drawerSub"></div>
+        </div>
+        <button class="btn-reset" id="drawerClose" type="button">Close</button>
+      </div>
+      <div class="drawer-body" id="drawerBody"></div>
+    </aside>
+
+    <script>
+      (() => {
+        "use strict";
+
+        // ══════════════════════════════════════════════════════════════
+        //  HELPERS
+        // ══════════════════════════════════════════════════════════════
+        const $ = (s) => document.querySelector(s);
+        const clean = (v) => (v == null ? "" : String(v).trim());
+        const collapse = (s) => s.replace(/\s+/g, " ").trim();
+        const slugify = (s) =>
+          s
+            .toLowerCase()
+            .replace(/[^a-z0-9]+/g, "-")
+            .replace(/^-+|-+$/g, "") || "product";
+        const esc = (s) =>
+          String(s).replace(
+            /[&<>"']/g,
+            (c) =>
+              ({
+                "&": "&amp;",
+                "<": "&lt;",
+                ">": "&gt;",
+                '"': "&quot;",
+                "'": "&#39;",
+              })[c],
+          );
+
+        // ── Shopify product image URL base ──
+        const IMAGE_BASE =
+          "https://cdn.shopify.com/s/files/1/0861/3255/6019/files/";
+
+        // Registry of exported image base names from Step 2.
+        // Key = lowercased base name, Value = actual base name (original casing).
+        // Populated during Fit so the URL generator always matches what was exported.
+        const exportedImages = new Map();
+
+        // ══════════════════════════════════════════════════════════════
+        //  STEP NAVIGATION
+        // ══════════════════════════════════════════════════════════════
+        let currentStep = 1;
+        const stepEls = {
+          1: document.getElementById("step1"),
+          2: document.getElementById("step2"),
+          3: document.getElementById("step3"),
+        };
+
+        function updateStepper() {
+          document.querySelectorAll(".stepper-step").forEach((el) => {
+            const s = parseInt(el.dataset.step, 10);
+            el.classList.toggle("current", s === currentStep);
+            el.classList.toggle("done", s < currentStep);
+          });
+        }
+
+        function goToStep(n) {
+          if (n < 1 || n > 3) return;
+          if (n === currentStep) return;
+          if (n > 1 && !allCsvsLoaded()) return; // forward guard
+
+          currentStep = n;
+          Object.keys(stepEls).forEach((k) => {
+            stepEls[k].classList.toggle("hidden", parseInt(k, 10) !== n);
+          });
+          updateStepper();
+
+          // Full-height dashboard mode — Step 3 only
+          document.body.classList.toggle("step3-on", n === 3);
+
+          if (n === 3) regenerateStep3();
+
+          window.scrollTo({ top: 0, behavior: "smooth" });
+        }
+
+        document.querySelectorAll(".stepper-step").forEach((el) => {
+          el.addEventListener("click", () => {
+            const s = parseInt(el.dataset.step, 10);
+            if (s === currentStep) return;
+            if (s < currentStep) goToStep(s);
+            else if (allCsvsLoaded()) goToStep(s);
+          });
+        });
+
+        function allCsvsLoaded() {
+          return !!(state.stock && state.desc && state.dept);
+        }
+
+        // ══════════════════════════════════════════════════════════════
+        //  SHARED CONFIG
+        // ══════════════════════════════════════════════════════════════
+        const CONFIG = {
+          vendor: "AzureGreen",
+          inventoryTracker: "shopify",
+          oosPolicy: "deny",
+          fulfillmentService: "manual",
+          requiresShipping: "TRUE",
+          published: "TRUE",
+          weightUnitDisplay: "g",
+        };
+
+        const SHOPIFY_COLUMNS = [
+          "Handle",
+          "Title",
+          "Body",
+          "vendor",
+          "Product category",
+          "Type",
+          "Tags",
+          "Published",
+          "Status",
+          "SKU",
+          "Variant Barcodes",
+          "Price",
+          "Inventory tracker",
+          "Inventory quantity",
+          "Continue selling when out of stock",
+          "Fulfillment service",
+          "Requires shipping",
+          "Weight value (grams)",
+          "Weight unit for display",
+          "Product image URL",
+          "Image position",
+          "Image alt text",
+        ];
+
+        const state = { stock: null, desc: null, dept: null, files: {} };
+
+        function parseNumber(v) {
+          if (v == null) return 0;
+          let s = String(v).trim();
+          if (!s) return 0;
+          s = s.replace(/[^\d.,\-]/g, "");
+          if (!s) return 0;
+          if (s.includes(",") && !s.includes(".")) s = s.replace(/,/g, ".");
+          else s = s.replace(/,/g, "");
+          const n = parseFloat(s);
+          return isNaN(n) ? 0 : n;
+        }
+
+        function weightValue(raw) {
+          if (clean(raw) === "") return "0";
+          const n = parseNumber(raw);
+          if (Number.isInteger(n)) return String(n);
+          return String(Math.round(n * 100) / 100);
+        }
+
+        const round2 = (n) => Math.round(n * 100) / 100;
+
+        function getField(row, ...names) {
+          if (!row) return "";
+          const keys = Object.keys(row);
+          for (const name of names) {
+            if (row[name] !== undefined && row[name] !== null) return row[name];
+            const t = name.toLowerCase();
+            for (const k of keys)
+              if (k.trim().toLowerCase() === t) return row[k];
+          }
+          for (const k of keys)
+            if (k.toLowerCase().includes("weight")) return row[k];
+          return "";
+        }
+
+        // ══════════════════════════════════════════════════════════════
+        //  IMAGE URL RESOLUTION  (SKU → exported .jpg base name)
+        // ══════════════════════════════════════════════════════════════
+        function resolveImageUrl(sku, inetImage) {
+          if (!inetImage) return ""; // no image in the source catalog → no URL, no broken link
+
+          let baseName = null;
+
+          // 1) Exact match against files actually exported by Image Prep
+          if (exportedImages.size > 0) {
+            const s = sku.toLowerCase();
+            if (exportedImages.has(s)) {
+              baseName = exportedImages.get(s);
+            } else {
+              // 2) Prefix match — covers suffixes like A / B / C / At / Bt.
+              //    Pick the shortest match for determinism.
+              let bestKey = null;
+              for (const k of exportedImages.keys()) {
+                if (k.startsWith(s)) {
+                  if (bestKey === null || k.length < bestKey.length)
+                    bestKey = k;
+                }
+              }
+              if (bestKey !== null) baseName = exportedImages.get(bestKey);
+            }
+          }
+
+          // 3) Image Prep not run — derive from the source filename (strip folder + ext)
+          if (!baseName) {
+            const inetBase = String(inetImage)
+              .split("/")
+              .pop()
+              .replace(/\.[^.]+$/, "");
+            baseName = inetBase || sku;
+          }
+
+          // Exported files are always actual .jpg — no query params.
+          return IMAGE_BASE + baseName + ".jpg";
+        }
+
+        // ══════════════════════════════════════════════════════════════
+        //  STEP 1 · UPLOAD CSV
+        // ══════════════════════════════════════════════════════════════
+        function showError(msg) {
+          const b = $("#errBox");
+          b.innerHTML = msg;
+          b.classList.add("show");
+        }
+        function clearError() {
+          $("#errBox").classList.remove("show");
+        }
+
+        function setBadge(kind, status, label) {
+          const b = document.getElementById("b-" + kind);
+          const r = document.getElementById("r-" + kind);
+          if (b) {
+            b.className = "badge " + status;
+            b.textContent = label;
+          }
+          if (r) r.classList.toggle("loaded", status === "ok");
+        }
+
+        function detectKind(name) {
+          const n = name.toLowerCase();
+          if (n.includes("stockinfo")) return "stock";
+          if (n.includes("descriptions")) return "desc";
+          if (
+            n.includes("product-department") ||
+            n.includes("product_department") ||
+            n.includes("productdepartment")
+          )
+            return "dept";
+          return null;
+        }
+
+        function handleFiles(fileList) {
+          clearError();
+          const files = Array.from(fileList);
+          if (!files.length) return;
+          let any = false;
+          for (const f of files) {
+            const kind = detectKind(f.name);
+            if (!kind) {
+              showError(
+                'Unknown file: <strong>"' +
+                  esc(f.name) +
+                  '"</strong> — expected StockInfo.csv, Descriptions.csv, or Product-Department.csv. (Original file names must be kept.)',
+              );
+              continue;
+            }
+            state.files[kind] = f;
+            setBadge(kind, "wait", "parsing…");
+            any = true;
+          }
+          if (!any) return;
+          ["stock", "desc", "dept"].forEach((kind) => {
+            const f = state.files[kind];
+            if (!f) return;
+            Papa.parse(f, {
+              header: true,
+              skipEmptyLines: true,
+              worker: false,
+              complete: (res) => {
+                state[kind] = res;
+                setBadge(kind, "ok", "✓ " + res.data.length + " rows");
+                updateNextButton();
+              },
+              error: (err) => {
+                setBadge(kind, "err", "parse error");
+                showError(
+                  "Failed to parse " +
+                    esc(f.name) +
+                    ": " +
+                    esc(err.message || err),
+                );
+              },
+            });
+          });
+        }
+
+        function updateNextButton() {
+          $("#nextToStep2").disabled = !allCsvsLoaded();
+        }
+
+        // wiring — step 1
+        const drop = $("#drop"),
+          fileInput = $("#fileInput");
+
+        function openFilePicker(e) {
+          if (e) {
+            e.preventDefault();
+            e.stopPropagation();
+          }
+          fileInput.click();
+        }
+
+        drop.addEventListener("click", openFilePicker);
+        drop.addEventListener("keydown", (e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            openFilePicker(e);
+          }
+        });
+        fileInput.addEventListener("change", (e) =>
+          handleFiles(e.target.files),
+        );
+
+        ["dragenter", "dragover"].forEach((ev) =>
+          drop.addEventListener(ev, (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            drop.classList.add("over");
+          }),
+        );
+        ["dragleave", "drop"].forEach((ev) =>
+          drop.addEventListener(ev, (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            drop.classList.remove("over");
+          }),
+        );
+        drop.addEventListener("drop", (e) => {
+          if (e.dataTransfer.files) handleFiles(e.dataTransfer.files);
+        });
+
+        // allow re-selecting the same file after a reset
+        fileInput.addEventListener("click", () => {
+          fileInput.value = "";
+        });
+
+        $("#nextToStep2").addEventListener("click", () => goToStep(2));
+
+        // ══════════════════════════════════════════════════════════════
+        //  CSV PROCESSING  (used by step 3)
+        // ══════════════════════════════════════════════════════════════
+        function buildRows() {
+          const descMap = new Map();
+          for (const row of state.desc.data) {
+            const sku = clean(getField(row, "NUMBER", "Number", "sku", "SKU"));
+            if (sku)
+              descMap.set(
+                sku,
+                getField(row, "INETSHORTD", "Description", "body") || "",
+              );
+          }
+          const deptMap = new Map();
+          for (const row of state.dept.data) {
+            const sku = clean(getField(row, "NUMBER", "Number", "sku", "SKU"));
+            const code = clean(
+              getField(row, "DEPTCODE", "DeptCode", "department"),
+            );
+            if (!sku || !code) continue;
+            if (!deptMap.has(sku)) deptMap.set(sku, []);
+            const arr = deptMap.get(sku);
+            if (!arr.includes(code)) arr.push(code);
+          }
+
+          const marginPct = parseFloat($("#marginInput").value) || 0;
+          const multiplier = 1 + marginPct / 100;
+          const productStatus =
+            $("#statusSelect").value === "draft" ? "draft" : "active";
+
+          const seenSku = new Set(),
+            seenHandle = new Set();
+          const rows = [];
+          const lists = {
+            productsWritten: [],
+            sourceRows: [],
+            duplicateSkus: [],
+            blankSkus: [],
+            missingDesc: [],
+            missingDept: [],
+            missingPrice: [],
+          };
+          const stats = {
+            total: 0,
+            blankSku: 0,
+            dupSku: 0,
+            missingDesc: 0,
+            missingDept: 0,
+            missingPrice: 0,
+            missingImage: 0,
+            zeroWeight: 0,
+          };
+
+          state.stock.data.forEach((row, rowIdx) => {
+            const rowNum = rowIdx + 2; // 1-based + header
+            stats.total++;
+            const sku = clean(getField(row, "NUMBER", "Number", "sku", "SKU"));
+            lists.sourceRows.push(sku ? sku : "Row " + rowNum);
+
+            if (!sku) {
+              stats.blankSku++;
+              lists.blankSkus.push("Row " + rowNum);
+              return;
+            }
+            if (seenSku.has(sku)) {
+              stats.dupSku++;
+              lists.duplicateSkus.push(sku);
+              return;
+            }
+            seenSku.add(sku);
+
+            const title =
+              collapse(getField(row, "INETSDESC", "Name", "title") || "") ||
+              sku;
+            const body = descMap.get(sku) || "";
+            const depts = deptMap.get(sku) || [];
+            if (!body) {
+              stats.missingDesc++;
+              lists.missingDesc.push(sku);
+            }
+            if (!depts.length) {
+              stats.missingDept++;
+              lists.missingDept.push(sku);
+            }
+
+            const wholesale = parseNumber(
+              getField(row, "PRICE1", "Price", "price"),
+            );
+            const price = round2(wholesale * multiplier);
+            if (price === 0) {
+              stats.missingPrice++;
+              lists.missingPrice.push(sku);
+            }
+
+            const qty = Math.round(
+              parseNumber(getField(row, "UNITS", "Units", "qty", "quantity")),
+            );
+            const rawWeight = getField(
+              row,
+              "UNITWEIGHT",
+              "UnitWeight",
+              "unit_weight",
+              "Unit Weight",
+              "Weight",
+            );
+            const wVal = weightValue(rawWeight);
+            if (wVal === "0" && clean(rawWeight) !== "") stats.zeroWeight++;
+
+            let base = slugify(title),
+              handle = base,
+              i = 2;
+            while (seenHandle.has(handle)) handle = base + "-" + i++;
+            seenHandle.add(handle);
+
+            const imageFile = clean(
+              getField(row, "INETIMAGE", "Image", "image"),
+            );
+            const imageUrl = resolveImageUrl(sku, imageFile);
+            if (!imageUrl) stats.missingImage++;
+
+            rows.push({
+              Handle: handle,
+              Title: title,
+              Body: body,
+              vendor: CONFIG.vendor,
+              "Product category": "",
+              Type: "",
+              Tags: depts.join(", "),
+              Published: CONFIG.published,
+              Status: productStatus,
+              SKU: sku,
+              "Variant Barcodes": "",
+              Price: price.toFixed(2),
+              "Inventory tracker": CONFIG.inventoryTracker,
+              "Inventory quantity": String(qty),
+              "Continue selling when out of stock": CONFIG.oosPolicy,
+              "Fulfillment service": CONFIG.fulfillmentService,
+              "Requires shipping": CONFIG.requiresShipping,
+              "Weight value (grams)": wVal,
+              "Weight unit for display": CONFIG.weightUnitDisplay,
+              "Product image URL": imageUrl,
+              "Image position": imageUrl ? "1" : "",
+              "Image alt text": imageUrl ? title : "",
+            });
+
+            lists.productsWritten.push(sku);
+          });
+
+          return { rows, stats, lists };
+        }
+
+        // ══════════════════════════════════════════════════════════════
+        //  STEP 3 · DASHBOARD
+        // ══════════════════════════════════════════════════════════════
+        const PREVIEW_LIMIT = 500;
+        let lastCsvText = null;
+        let currentLists = {};
+        let regenTimer = null;
+
+        const METRIC_DEFS = [
+          {
+            key: "productsWritten",
+            label: "Products Written",
+            get: (r, s) => r.length,
+            severity: "ok",
+          },
+          {
+            key: "sourceRows",
+            label: "Source Rows",
+            get: (r, s) => s.total,
+            severity: "",
+          },
+          {
+            key: "duplicateSkus",
+            label: "Duplicate SKUs",
+            get: (r, s) => s.dupSku,
+            severity: "warn",
+          },
+          {
+            key: "blankSkus",
+            label: "Blank SKUs",
+            get: (r, s) => s.blankSku,
+            severity: "warn",
+          },
+          {
+            key: "missingDesc",
+            label: "Missing Description",
+            get: (r, s) => s.missingDesc,
+            severity: "warn",
+          },
+          {
+            key: "missingDept",
+            label: "Missing Departments",
+            get: (r, s) => s.missingDept,
+            severity: "warn",
+          },
+          {
+            key: "missingPrice",
+            label: "Missing Price",
+            get: (r, s) => s.missingPrice,
+            severity: "warn",
+          },
+        ];
+
+        const METRIC_META = {
+          productsWritten: {
+            title: "Products Written",
+            sub: "SKUs written to the Shopify CSV",
+          },
+          sourceRows: {
+            title: "Source Rows",
+            sub: "Every row found in StockInfo.csv",
+          },
+          duplicateSkus: {
+            title: "Duplicate SKUs",
+            sub: "SKUs that appeared more than once and were skipped",
+          },
+          blankSkus: {
+            title: "Blank SKUs",
+            sub: "Source rows with no SKU (shown by row number)",
+          },
+          missingDesc: {
+            title: "Missing Description",
+            sub: "Products with no description found",
+          },
+          missingDept: {
+            title: "Missing Departments",
+            sub: "Products with no department code found",
+          },
+          missingPrice: {
+            title: "Missing Price",
+            sub: "Products with a wholesale price of 0",
+          },
+        };
+
+        function renderMetrics(rows, stats) {
+          const grid = $("#metricGrid");
+          grid.innerHTML = "";
+          for (const def of METRIC_DEFS) {
+            const count = def.get(rows, stats);
+            let cls = "";
+            if (def.severity === "ok") cls = "ok";
+            else if (def.severity === "warn" && count > 0) cls = "warn";
+
+            const card = document.createElement("div");
+            card.className = "metric-card " + cls;
+            card.innerHTML =
+              '<div class="metric-k">' +
+              esc(def.label) +
+              "</div>" +
+              '<div class="metric-row">' +
+              '<span class="metric-v">' +
+              count +
+              "</span>" +
+              (count > 0
+                ? '<button class="metric-view" type="button" data-metric="' +
+                  def.key +
+                  '">View</button>'
+                : "") +
+              "</div>";
+            grid.appendChild(card);
+          }
+          grid.querySelectorAll(".metric-view").forEach((btn) => {
+            btn.addEventListener("click", () => openDrawer(btn.dataset.metric));
+          });
+        }
+
+        function renderPreviewTable(rows) {
+          const t = $("#previewTable");
+          const total = rows.length;
+          const limit = Math.min(total, PREVIEW_LIMIT);
+
+          let html = "<thead><tr>";
+          for (const col of SHOPIFY_COLUMNS)
+            html += "<th>" + esc(col) + "</th>";
+          html += "</tr></thead><tbody>";
+
+          for (let i = 0; i < limit; i++) {
+            const r = rows[i];
+            html += "<tr>";
+            for (const col of SHOPIFY_COLUMNS) {
+              const v = r[col] || "";
+              html += '<td title="' + esc(v) + '">' + esc(v) + "</td>";
+            }
+            html += "</tr>";
+          }
+          html += "</tbody>";
+          t.innerHTML = html;
+
+          $("#previewMeta").textContent = total
+            ? "Showing " + limit + " of " + total + " rows"
+            : "No rows";
+
+          const note = $("#previewNote");
+          if (total > PREVIEW_LIMIT) {
+            note.textContent =
+              "Preview capped at " +
+              PREVIEW_LIMIT +
+              " rows for performance. The downloaded file contains all " +
+              total +
+              " rows.";
+            note.classList.remove("hidden");
+          } else {
+            note.classList.add("hidden");
+          }
+        }
+
+        function updateCsvText(rows) {
+          lastCsvText = Papa.unparse({
+            fields: SHOPIFY_COLUMNS,
+            data: rows.map((r) => SHOPIFY_COLUMNS.map((c) => r[c])),
+          });
+        }
+
+        function regenerateStep3() {
+          if (!allCsvsLoaded()) {
+            $("#dashSub").textContent = "No CSV data loaded.";
+            return;
+          }
+          try {
+            const { rows, stats, lists } = buildRows();
+            currentLists = lists;
+
+            $("#dashSub").textContent =
+              rows.length +
+              " product" +
+              (rows.length === 1 ? "" : "s") +
+              " ready · " +
+              stats.total +
+              " source row" +
+              (stats.total === 1 ? "" : "s");
+
+            renderMetrics(rows, stats);
+            renderPreviewTable(rows);
+            updateCsvText(rows);
+
+            const dl = $("#dlBtn");
+            dl.disabled = rows.length === 0;
+            dl.textContent = "Download Shopify File";
+          } catch (e) {
+            console.error(e);
+            $("#dashSub").textContent = "Generation failed: " + e.message;
+          }
+        }
+
+        function scheduleRegen() {
+          clearTimeout(regenTimer);
+          regenTimer = setTimeout(regenerateStep3, 180);
+        }
+        $("#marginInput").addEventListener("input", scheduleRegen);
+        $("#statusSelect").addEventListener("change", scheduleRegen);
+
+        $("#dlBtn").addEventListener("click", () => {
+          if (!lastCsvText) return;
+          const blob = new Blob([lastCsvText], {
+            type: "text/csv;charset=utf-8;",
+          });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement("a");
+          a.href = url;
+          a.download = "shopify_import.csv";
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          setTimeout(() => URL.revokeObjectURL(url), 1000);
+        });
+
+        // ══════════════════════════════════════════════════════════════
+        //  DRAWER  (SKU investigation)
+        // ══════════════════════════════════════════════════════════════
+        const drawer = $("#drawer");
+        const drawerOverlay = $("#drawerOverlay");
+        const drawerTitle = $("#drawerTitle");
+        const drawerSub = $("#drawerSub");
+        const drawerBody = $("#drawerBody");
+
+        function openDrawer(key) {
+          const meta = METRIC_META[key];
+          if (!meta) return;
+          const list = currentLists[key] || [];
+
+          drawerTitle.textContent = meta.title;
+          drawerSub.textContent = list.length
+            ? list.length +
+              " item" +
+              (list.length === 1 ? "" : "s") +
+              " · " +
+              meta.sub
+            : "0 items · " + meta.sub;
+
+          if (list.length === 0) {
+            drawerBody.innerHTML =
+              '<div class="drawer-empty">Nothing to show here — all clear.</div>';
+          } else {
+            const limit = Math.min(list.length, 1000);
+            let html = '<div class="drawer-list">';
+            for (let i = 0; i < limit; i++) {
+              html += '<span class="sku-chip">' + esc(list[i]) + "</span>";
+            }
+            html += "</div>";
+            if (list.length > limit) {
+              html +=
+                '<div class="drawer-note">Showing the first ' +
+                limit +
+                " of " +
+                list.length +
+                ". Download the CSV for the full list.</div>";
+            }
+            drawerBody.innerHTML = html;
+          }
+
+          drawer.classList.add("open");
+          drawerOverlay.classList.add("open");
+          drawer.setAttribute("aria-hidden", "false");
+        }
+
+        function closeDrawer() {
+          drawer.classList.remove("open");
+          drawerOverlay.classList.remove("open");
+          drawer.setAttribute("aria-hidden", "true");
+        }
+
+        $("#drawerClose").addEventListener("click", closeDrawer);
+        drawerOverlay.addEventListener("click", closeDrawer);
+        document.addEventListener("keydown", (e) => {
+          if (e.key === "Escape") closeDrawer();
+        });
+
+        // ══════════════════════════════════════════════════════════════
+        //  STEP 2 · SHOPIFY IMAGE PREP  (all exports standardized to .jpg)
+        // ══════════════════════════════════════════════════════════════
+        const IMG_EXT = /\.(png|jpe?g|webp|gif|bmp)$/i;
+        const supportsFSA = "showDirectoryPicker" in window;
+
+        let imgDirHandle = null;
+        let imgFiles = [];
+        let imgItems = [];
+
+        const btnSelectFolder = $("#btnSelectFolder");
+        const btnFit = $("#btnFit");
+        const btnExportImages = $("#btnExportImages");
+        const sourceInfoEl = $("#sourceInfo");
+        const compatNoteEl = $("#compatNote");
+        const imgGridWrap = $("#imgGridWrap");
+        const imgCountLabel = $("#imgCountLabel");
+        const imgLogEl = $("#imgLog");
+        const progressFill = $("#progressFill");
+        const canvasSizeInput = $("#canvasSize");
+        const safeSizeInput = $("#safeSize");
+
+        compatNoteEl.innerHTML = supportsFSA
+          ? "Your browser can write files directly into the source folder."
+          : "Your browser can't write folders directly (Safari / Firefox). Export will download a <b>Shopify Upload.zip</b> instead — unzip it next to your source folder.";
+
+        function logImg(msg, type) {
+          const row = document.createElement("div");
+          if (type) row.className = type;
+          row.textContent = msg;
+          imgLogEl.prepend(row);
+        }
+
+        function extOf(name) {
+          const m = name.match(/\.[^.]+$/);
+          return m ? m[0].toLowerCase() : "";
+        }
+
+        // select folder
+        btnSelectFolder.addEventListener("click", async () => {
+          let files = [];
+
+          if (supportsFSA) {
+            let dh;
+            try {
+              dh = await window.showDirectoryPicker();
+            } catch (e) {
+              return; // user cancelled
+            }
+            imgDirHandle = dh;
+            for await (const [name, handle] of dh.entries()) {
+              if (handle.kind === "file" && IMG_EXT.test(name)) {
+                files.push(await handle.getFile());
+              }
+            }
+            sourceInfoEl.innerHTML =
+              "<strong>" +
+              esc(dh.name) +
+              "</strong> · " +
+              files.length +
+              " image" +
+              (files.length === 1 ? "" : "s") +
+              " found";
+          } else {
+            files = await new Promise((resolve) => {
+              const input = document.createElement("input");
+              input.type = "file";
+              input.webkitdirectory = true;
+              input.multiple = true;
+              input.onchange = () => {
+                const fs = Array.from(input.files).filter((f) =>
+                  IMG_EXT.test(f.name),
+                );
+                const folderName =
+                  (input.files[0] &&
+                    input.files[0].webkitRelativePath.split("/")[0]) ||
+                  "folder";
+                sourceInfoEl.innerHTML =
+                  "<strong>" +
+                  esc(folderName) +
+                  "</strong> · " +
+                  fs.length +
+                  " image" +
+                  (fs.length === 1 ? "" : "s") +
+                  " found";
+                resolve(fs);
+              };
+              input.click();
+            });
+          }
+
+          imgFiles = files;
+          imgItems = [];
+          progressFill.style.width = "0%";
+          btnExportImages.disabled = true;
+          imgLogEl.innerHTML = "";
+
+          if (files.length === 0) {
+            btnFit.disabled = true;
+            imgGridWrap.innerHTML =
+              '<div class="img-empty"><b>No images found</b>That folder had no supported image files (png, jpg, jpeg, webp, gif, bmp).</div>';
+            imgCountLabel.textContent = "No images found.";
+            logImg("No supported images found in that folder.", "err");
+            return;
+          }
+
+          btnFit.disabled = false;
+          logImg(
+            "Loaded " +
+              files.length +
+              " image(s). Click “Fit images” to render the preview.",
+          );
+          buildImgGrid();
+        });
+
+        function buildImgGrid() {
+          imgGridWrap.innerHTML = "";
+          imgItems = imgFiles.map((file, idx) => {
+            const ext = extOf(file.name);
+            const baseName = ext ? file.name.slice(0, -ext.length) : file.name;
+            return {
+              idx,
+              file,
+              name: file.name,
+              ext,
+              baseName,
+              canvas: null,
+              blob: null,
+              status: "pending",
+            };
+          });
+
+          const grid = document.createElement("div");
+          grid.className = "img-grid";
+
+          imgItems.forEach((item) => {
+            const card = document.createElement("div");
+            card.className = "img-card";
+            card.id = "img-card-" + item.idx;
+            card.innerHTML =
+              '<div class="thumb"><span class="thumb-hint">Not fitted</span></div>' +
+              '<div class="meta">' +
+              '<div class="fname" title="' +
+              esc(item.name) +
+              '">' +
+              esc(item.name) +
+              "</div>" +
+              '<div class="status">Waiting…</div>' +
+              "</div>";
+            grid.appendChild(card);
+          });
+
+          imgGridWrap.appendChild(grid);
+          imgCountLabel.textContent =
+            imgItems.length +
+            " image" +
+            (imgItems.length === 1 ? "" : "s") +
+            " found";
+        }
+
+        // fit — every image is rendered to a canvas and encoded as actual JPEG
+        btnFit.addEventListener("click", fitAll);
+
+        async function fitAll() {
+          if (!imgItems.length) return;
+
+          btnFit.disabled = true;
+          btnSelectFolder.disabled = true;
+          btnExportImages.disabled = true;
+          progressFill.style.width = "0%";
+
+          const canvasSize = Math.max(
+            100,
+            parseInt(canvasSizeInput.value, 10) || 1080,
+          );
+          const safeRaw = Math.max(
+            50,
+            parseInt(safeSizeInput.value, 10) || 550,
+          );
+          const safeSize = Math.min(canvasSize, safeRaw);
+
+          let done = 0;
+
+          for (const item of imgItems) {
+            const card = document.getElementById("img-card-" + item.idx);
+            const thumb = card.querySelector(".thumb");
+            thumb.innerHTML = '<div class="spinner"></div>';
+
+            try {
+              const bitmap = await createImageBitmap(item.file);
+
+              const canvas = document.createElement("canvas");
+              canvas.width = canvasSize;
+              canvas.height = canvasSize;
+              const ctx = canvas.getContext("2d");
+
+              // Always fill white — JPEG has no alpha channel.
+              ctx.fillStyle = "#ffffff";
+              ctx.fillRect(0, 0, canvasSize, canvasSize);
+
+              // Scale to fit inside the safe zone, then center.
+              const scale = Math.min(
+                safeSize / bitmap.width,
+                safeSize / bitmap.height,
+              );
+              const dw = bitmap.width * scale;
+              const dh = bitmap.height * scale;
+              const dx = (canvasSize - dw) / 2;
+              const dy = (canvasSize - dh) / 2;
+              ctx.drawImage(bitmap, dx, dy, dw, dh);
+              if (bitmap.close) bitmap.close();
+
+              // Encode as real JPEG — this is what converts PNG/WebP/etc. to .jpg
+              const blob = await new Promise((res) =>
+                canvas.toBlob(res, "image/jpeg", 0.92),
+              );
+              if (!blob) throw new Error("JPEG encoding failed");
+
+              item.canvas = canvas;
+              item.blob = blob;
+              item.status = "done";
+
+              // Register for Product image URL generation (base name without extension)
+              exportedImages.set(item.baseName.toLowerCase(), item.baseName);
+
+              // Real preview (downscaled copy for performance)
+              const tSize = Math.min(canvasSize, 400);
+              const thumbCanvas = document.createElement("canvas");
+              thumbCanvas.width = tSize;
+              thumbCanvas.height = tSize;
+              thumbCanvas
+                .getContext("2d")
+                .drawImage(canvas, 0, 0, tSize, tSize);
+
+              thumb.innerHTML = "";
+              thumb.appendChild(thumbCanvas);
+              card.querySelector(".status").innerHTML =
+                '<span class="badge ok">Fit ✓ .jpg</span>';
+            } catch (err) {
+              item.status = "error";
+              thumb.innerHTML = '<span class="thumb-hint err">⚠</span>';
+              card.querySelector(".status").innerHTML =
+                '<span class="badge err">Failed</span>';
+              logImg("✗ " + item.name + ": " + (err.message || err), "err");
+            }
+
+            done++;
+            progressFill.style.width = (done / imgItems.length) * 100 + "%";
+          }
+
+          const ok = imgItems.filter((i) => i.status === "done").length;
+          logImg(
+            "Fit " +
+              ok +
+              "/" +
+              imgItems.length +
+              " image(s) at " +
+              canvasSize +
+              "×" +
+              canvasSize +
+              " with a " +
+              safeSize +
+              "×" +
+              safeSize +
+              " safe zone. All exports are .jpg.",
+            "ok",
+          );
+
+          btnFit.disabled = false;
+          btnSelectFolder.disabled = false;
+          btnExportImages.disabled = ok === 0;
+        }
+
+        // export — always writes "<baseName>.jpg"
+        btnExportImages.addEventListener("click", exportImages);
+
+        async function exportImages() {
+          const ready = imgItems.filter((i) => i.status === "done");
+          if (!ready.length) return;
+
+          btnExportImages.disabled = true;
+
+          if (supportsFSA && imgDirHandle) {
+            try {
+              const outDir = await imgDirHandle.getDirectoryHandle(
+                "Shopify Upload",
+                { create: true },
+              );
+              let written = 0;
+              for (const item of ready) {
+                const outName = item.baseName + ".jpg";
+                const fileHandle = await outDir.getFileHandle(outName, {
+                  create: true,
+                });
+                const writable = await fileHandle.createWritable();
+                await writable.write(item.blob);
+                await writable.close();
+                written++;
+              }
+              logImg(
+                "✓ Wrote " +
+                  written +
+                  ' .jpg file(s) into "' +
+                  imgDirHandle.name +
+                  '/Shopify Upload".',
+                "ok",
+              );
+            } catch (err) {
+              logImg("✗ Export failed: " + (err.message || err), "err");
+            }
+          } else {
+            await exportImgZip(ready);
+          }
+
+          btnExportImages.disabled = false;
+        }
+
+        let jsZipLoading = null;
+        function ensureJSZip() {
+          if (window.JSZip) return Promise.resolve();
+          if (jsZipLoading) return jsZipLoading;
+          jsZipLoading = new Promise((resolve, reject) => {
+            const s = document.createElement("script");
+            s.src =
+              "https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js";
+            s.onload = resolve;
+            s.onerror = () =>
+              reject(
+                new Error(
+                  "Could not load the zip library (no internet connection?).",
+                ),
+              );
+            document.head.appendChild(s);
+          });
+          return jsZipLoading;
+        }
+
+        async function exportImgZip(ready) {
+          try {
+            logImg(
+              "Preparing zip (loads the zip library once, needs internet)…",
+            );
+            await ensureJSZip();
+            const zip = new JSZip();
+            const folder = zip.folder("Shopify Upload");
+            ready.forEach((item) =>
+              folder.file(item.baseName + ".jpg", item.blob),
+            );
+            const content = await zip.generateAsync({ type: "blob" });
+            const url = URL.createObjectURL(content);
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = "Shopify Upload.zip";
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            URL.revokeObjectURL(url);
+            logImg(
+              "✓ Downloaded Shopify Upload.zip with " +
+                ready.length +
+                " .jpg file(s). Unzip it to get the folder.",
+              "ok",
+            );
+          } catch (err) {
+            logImg("✗ " + (err.message || err), "err");
+          }
+        }
+
+        $("#nextToStep3").addEventListener("click", () => goToStep(3));
+
+        // ══════════════════════════════════════════════════════════════
+        //  RESET
+        // ══════════════════════════════════════════════════════════════
+        function resetAll() {
+          // CSV state
+          state.stock = state.desc = state.dept = null;
+          state.files = {};
+          ["stock", "desc", "dept"].forEach((k) =>
+            setBadge(k, "wait", "waiting"),
+          );
+          fileInput.value = "";
+          clearError();
+          updateNextButton();
+
+          // image registry
+          exportedImages.clear();
+
+          // step-3 state
+          lastCsvText = null;
+          currentLists = {};
+          $("#marginInput").value = "0";
+          $("#statusSelect").value = "draft";
+          $("#metricGrid").innerHTML = "";
+          $("#previewTable").innerHTML = "";
+          $("#previewMeta").textContent = "—";
+          $("#previewNote").classList.add("hidden");
+          const dl = $("#dlBtn");
+          dl.disabled = true;
+          dl.textContent = "Download Shopify File";
+
+          // image prep state
+          imgDirHandle = null;
+          imgFiles = [];
+          imgItems = [];
+          sourceInfoEl.textContent = "No folder selected yet.";
+          imgGridWrap.innerHTML =
+            '<div class="img-empty"><b>Nothing loaded yet</b>Select a folder, then click “Fit images” to see the real fitted result — every photo centered inside the safe zone on a white canvas.</div>';
+          imgCountLabel.textContent = "Nothing loaded yet.";
+          imgLogEl.innerHTML = "";
+          progressFill.style.width = "0%";
+          canvasSizeInput.value = "1080";
+          safeSizeInput.value = "550";
+          btnFit.disabled = true;
+          btnExportImages.disabled = true;
+          btnSelectFolder.disabled = false;
+
+          // drawer
+          closeDrawer();
+
+          // back to step 1
+          goToStep(1);
+          document.body.classList.remove("step3-on");
+        }
+
+        $("#resetBtn").addEventListener("click", resetAll);
+      })();
+    </script>
+  </body>
+</html>
